@@ -50,4 +50,12 @@ class GestorTareasTest {
         assertEquals(0, gestor.contarTareasPendientes())
         assertTrue(gestor.tareas.isEmpty())
     }
+
+    @Test
+    fun `prueba negativa de conteo de tareas`() {
+        gestor.agregarTarea("Tarea 1", "D1")
+        gestor.agregarTarea("Tarea 2", "D2")
+        // Esta aserción está diseñada para fallar intencionalmente
+        assertEquals("Error intencional: se esperan 3 tareas pero hay 2", 3, gestor.tareas.size)
+    }
 }
