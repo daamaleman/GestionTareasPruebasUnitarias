@@ -5,11 +5,7 @@ plugins {
 
 android {
     namespace = "ni.edu.uam.gestiontareaspruebasunitarias"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "ni.edu.uam.gestiontareaspruebasunitarias"
