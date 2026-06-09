@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +21,7 @@ import ni.edu.uam.gestiontareaspruebasunitarias.model.EstadoTarea
 import ni.edu.uam.gestiontareaspruebasunitarias.model.Tarea
 import ni.edu.uam.gestiontareaspruebasunitarias.ui.theme.DeepDarkBackground
 import ni.edu.uam.gestiontareaspruebasunitarias.ui.theme.DeepDarkSurface
+import ni.edu.uam.gestiontareaspruebasunitarias.viewmodel.FiltroTarea
 import ni.edu.uam.gestiontareaspruebasunitarias.viewmodel.TareasViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,6 +29,10 @@ import ni.edu.uam.gestiontareaspruebasunitarias.viewmodel.TareasViewModel
 fun PantallaTareas(viewModel: TareasViewModel = viewModel()) {
     val tareas by viewModel.tareas.collectAsState()
     val pendientesCount by viewModel.pendientesCount.collectAsState()
+    val porcentajeProgreso by viewModel.porcentajeProgreso.collectAsState()
+    val filtroActual by viewModel.filtroActual.collectAsState()
+    val estaOrdenado by viewModel.estaOrdenadoAlfabeticamente.collectAsState()
+    
     var nuevoTitulo by remember { mutableStateOf("") }
 
     Column(
@@ -35,13 +41,46 @@ fun PantallaTareas(viewModel: TareasViewModel = viewModel()) {
             .background(DeepDarkBackground)
             .padding(16.dp)
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Gestión de Tareas",
+                color = Color.White,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+            
+            IconButton(onClick = { viewModel.alternarOrdenAlfabetico() }) {
+                Icon(
+                    imageVector = Icons.Default.Sort,
+                    contentDescription = "Ordenar",
+                    tint = if (estaOrdenado) MaterialTheme.colorScheme.primary else Color.Gray
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Indicador de Progreso
         Text(
-            text = "Gestión de Tareas",
-            color = Color.White,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
+            text = "Progreso: ${(porcentajeProgreso * 100).toInt()}%",
+            color = Color.Gray,
+            fontSize = 12.sp
         )
+        LinearProgressIndicator(
+            progress = { porcentajeProgreso },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .testTag("progresoTareas"),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = Color.DarkGray,
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = nuevoTitulo,
@@ -77,14 +116,33 @@ fun PantallaTareas(viewModel: TareasViewModel = viewModel()) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Filtros
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FiltroTarea.entries.forEach { filtro ->
+                FilterChip(
+                    selected = filtroActual == filtro,
+                    onClick = { viewModel.cambiarFiltro(filtro) },
+                    label = { Text(filtro.name.lowercase().replaceFirstChar { it.uppercase() }) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        labelColor = Color.Gray,
+                        selectedLabelColor = Color.White,
+                        selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    )
+                )
+            }
+        }
+
         Text(
             text = "Tareas pendientes: $pendientesCount",
             color = MaterialTheme.colorScheme.secondary,
             fontSize = 14.sp,
-            modifier = Modifier.testTag("contadorPendientes")
+            modifier = Modifier
+                .padding(vertical = 8.dp)
+                .testTag("contadorPendientes")
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         LazyColumn(
             modifier = Modifier
